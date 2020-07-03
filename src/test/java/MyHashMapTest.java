@@ -1,5 +1,6 @@
 import map.HashMap;
 import map.exception.ElementNotFoundException;
+import map.exception.NoUsableKeyException;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -42,13 +43,13 @@ public class MyHashMapTest {
     @Test
     public void putAndGetWithNegativeKeys() {
         HashMap hashMap = new HashMap();
-        hashMap.put(-1, 12);
+        hashMap.put(-2, 12);
         hashMap.put(-3, 14);
         hashMap.put(-7, 0);
 
         Assert.assertEquals("The size isn't correct.", 3, hashMap.size());
 
-        long firstActualValue = hashMap.get(-1);
+        long firstActualValue = hashMap.get(-2);
         long secondActualValue = hashMap.get(-3);
         long thirdActualValue = hashMap.get(-7);
         Assert.assertEquals("Expected value: " + 12 + ", but was: " + firstActualValue, 12, firstActualValue);
@@ -69,6 +70,18 @@ public class MyHashMapTest {
         Assert.assertEquals("Expected value: " + 15 + ", but was: " + firstActualValue, 15, firstActualValue);
         Assert.assertEquals("Expected value: " + 14 + ", but was: " + secondActualValue, 14, secondActualValue);
         Assert.assertEquals("Expected value: " + 0 + ", but was: " + thirdActualValue, 0, thirdActualValue);
+    }
+
+    @Test(expected = NoUsableKeyException.class)
+    public void putMinusOneKey() {
+        HashMap hashMap = new HashMap();
+        hashMap.put(-1, 10);
+    }
+
+    @Test(expected = NoUsableKeyException.class)
+    public void getMinusOneKey() {
+        HashMap hashMap = new HashMap();
+        hashMap.get(-1);
     }
 
     @Test

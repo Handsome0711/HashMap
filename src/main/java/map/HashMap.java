@@ -1,54 +1,64 @@
 package map;
 
 import map.exception.ElementNotFoundException;
+import map.exception.NoUsableKeyException;
+import java.util.Arrays;
 
 public class HashMap {
     public static final int INITIAL_CAPACITY = 16;
     public static final double LOAD_FACTOR = 0.75;
-    private Node[] nodes;
+    private int[] keys;
+    private long[] values;
     private int size;
     private double threshold;
 
     public HashMap() {
-        this.nodes = new Node[INITIAL_CAPACITY];
+        this.keys = new int[INITIAL_CAPACITY];
+        this.values = new long[INITIAL_CAPACITY];
         this.size = 0;
         threshold = INITIAL_CAPACITY * LOAD_FACTOR;
-        for (int i = 0; i < INITIAL_CAPACITY; i ++) {
-            nodes[i] = null;
+        for (int i = 0; i < INITIAL_CAPACITY; i++) {
+            keys[i] = -1;
         }
     }
 
     public HashMap(int capacity) {
-        this.nodes = new Node[capacity];
+        this.keys = new int[capacity];
+        this.values = new long[capacity];
         this.size = 0;
         threshold = capacity * LOAD_FACTOR;
-        for (int i = 0; i < capacity; i ++) {
-            nodes[i] = null;
-        }
+        Arrays.fill(keys, -1);
     }
 
     public void put(int key, long value) {
-        if(size >= threshold) {
+        if (key == -1) {
+            throw new NoUsableKeyException("You can't use key -1");
+        }
+        if (size >= threshold) {
             resize();
         }
         int index = hash(key);
-        while (nodes[index] != null && nodes[index].key != key) {
-            index = (index + 1) % nodes.length;
+        while (keys[index] != -1 && keys[index] != key) {
+            index = (index + 1) % keys.length;
         }
-        if (nodes[index] == null) {
+        if (keys[index] == -1) {
             size++;
         }
-        nodes[index] = new Node(key, value);
+        keys[index] = key;
+        values[index] = value;
     }
 
     public long get(int key) {
+        if (key == -1) {
+            throw new NoUsableKeyException("You can't use key -1");
+        }
         int index = hash(key);
         int count = 0;
-        while (nodes[index] != null && count < nodes.length) {
-            if (nodes[index].key == key) {
-                return nodes[index].value;
+        while (keys[index] != -1 && count < keys.length) {
+            if (keys[index] == key) {
+                return values[index];
             }
-            index = (index + 1) % nodes.length;
+            index = (index + 1) % keys.length;
             count++;
         }
         throw new ElementNotFoundException("Cant find element with key " + key);
@@ -58,31 +68,25 @@ public class HashMap {
         return size;
     }
 
-    private int hash(int kay) {
-        return Math.abs(kay % nodes.length);
+    private int hash(int key) {
+        return Math.abs(key % keys.length);
     }
 
     private void resize() {
-        int newCapacity = nodes.length * 2;
+        int newCapacity = keys.length * 2;
         threshold = newCapacity * LOAD_FACTOR;
-        Node[] newNodes = new Node[newCapacity];
-        Node[] oldNodes = nodes;
-        nodes = newNodes;
+        int[] newKeys = new int[newCapacity];
+        long[] newValues = new long[newCapacity];
+        Arrays.fill(newKeys, -1);
+        int[] oldKeys = keys;
+        long[] oldValues = values;
+        keys = newKeys;
+        values = newValues;
         size = 0;
-        for (Node oldNode : oldNodes) {
-            if (oldNode != null) {
-                put(oldNode.key, oldNode.value);
+        for (int i = 0; i < oldKeys.length; i++) {
+            if (oldKeys[i] != -1) {
+                put(oldKeys[i], oldValues[i]);
             }
-        }
-    }
-
-    private static class Node {
-        private int key;
-        private long value;
-
-        public Node(int key, long value) {
-            this.key = key;
-            this.value = value;
         }
     }
 }
